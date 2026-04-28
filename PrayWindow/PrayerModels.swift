@@ -1,0 +1,639 @@
+//
+//  PrayerModels.swift
+//  PrayWindow
+//
+//  Created by Codex on 23/04/2026.
+//
+
+import Foundation
+import SwiftUI
+import UIKit
+
+enum AppLanguage: String, CaseIterable, Codable, Identifiable {
+    case arabic
+    case english
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .english: return "English"
+        case .arabic: return "العربية"
+        }
+    }
+
+    var localeIdentifier: String {
+        switch self {
+        case .english: return "en"
+        case .arabic: return "ar"
+        }
+    }
+
+    var locale: Locale {
+        Locale(identifier: localeIdentifier)
+    }
+
+    var layoutDirection: LayoutDirection {
+        self == .arabic ? .rightToLeft : .leftToRight
+    }
+
+    var isArabic: Bool {
+        self == .arabic
+    }
+
+    func text(_ key: LocalizedTextKey) -> String {
+        key.value(for: self)
+    }
+}
+
+enum LocalizedTextKey {
+    case appTitle
+    case setupTitle
+    case setupSubtitle
+    case nextPrayer
+    case location
+    case cityName
+    case useCurrentLocation
+    case detectingLocation
+    case saveCity
+    case appearance
+    case background
+    case text
+    case textSize
+    case fontSize
+    case font
+    case language
+    case livePreview
+    case widgetImage
+    case chooseImage
+    case replaceImage
+    case removeImage
+    case imageFocusPoint
+    case imageFocusHint
+    case customImageSaved
+    case customImageRemoved
+    case saveAppearance
+    case savedForWidget
+    case widgetLocationUpdated
+    case currentLocationSaved
+    case styleSaved
+    case enterCityFirst
+    case cityLookupFailed
+    case locationPermissionDisabled
+    case chooseLanguage
+    case today
+    case hijri
+    case gregorian
+    case prayerTimes
+    case upcomingPrayers
+    case remainingTime
+    case day
+    case month
+    case solarYear
+    case wisdomOfTheDay
+
+    func value(for language: AppLanguage) -> String {
+        switch (self, language) {
+        case (.appTitle, .english): return "Pray Widget"
+        case (.appTitle, .arabic): return "ويدجت الصلاة"
+        case (.setupTitle, .english): return "Widget Setup"
+        case (.setupTitle, .arabic): return "إعداد الودجت"
+        case (.setupSubtitle, .english): return "Choose your city or current location, then personalize the widget colors, font, and language."
+        case (.setupSubtitle, .arabic): return "اختر مدينتك أو موقعك الحالي، ثم خصص ألوان الودجت والخط واللغة."
+        case (.nextPrayer, .english): return "Next Prayer"
+        case (.nextPrayer, .arabic): return "الصلاة القادمة"
+        case (.location, .english): return "Location"
+        case (.location, .arabic): return "الموقع"
+        case (.cityName, .english): return "City name"
+        case (.cityName, .arabic): return "اسم المدينة"
+        case (.useCurrentLocation, .english): return "Use Current Location"
+        case (.useCurrentLocation, .arabic): return "استخدام الموقع الحالي"
+        case (.detectingLocation, .english): return "Detecting location..."
+        case (.detectingLocation, .arabic): return "جاري تحديد الموقع..."
+        case (.saveCity, .english): return "Save City"
+        case (.saveCity, .arabic): return "حفظ المدينة"
+        case (.appearance, .english): return "Appearance"
+        case (.appearance, .arabic): return "المظهر"
+        case (.background, .english): return "Background"
+        case (.background, .arabic): return "الخلفية"
+        case (.text, .english): return "Text"
+        case (.text, .arabic): return "النص"
+        case (.textSize, .english): return "Text Size"
+        case (.textSize, .arabic): return "حجم النص"
+        case (.fontSize, .english): return "Font Size"
+        case (.fontSize, .arabic): return "حجم الخط"
+        case (.font, .english): return "Font"
+        case (.font, .arabic): return "الخط"
+        case (.language, .english): return "Language"
+        case (.language, .arabic): return "اللغة"
+        case (.livePreview, .english): return "Live Preview"
+        case (.livePreview, .arabic): return "معاينة مباشرة"
+        case (.widgetImage, .english): return "Widget Image"
+        case (.widgetImage, .arabic): return "صورة الودجت"
+        case (.chooseImage, .english): return "Choose Image"
+        case (.chooseImage, .arabic): return "اختيار صورة"
+        case (.replaceImage, .english): return "Replace Image"
+        case (.replaceImage, .arabic): return "استبدال الصورة"
+        case (.removeImage, .english): return "Remove Image"
+        case (.removeImage, .arabic): return "إزالة الصورة"
+        case (.imageFocusPoint, .english): return "Focus Point"
+        case (.imageFocusPoint, .arabic): return "نقطة التركيز"
+        case (.imageFocusHint, .english): return "Drag freely to choose the center point used inside the widgets."
+        case (.imageFocusHint, .arabic): return "اسحب بحرية لتحديد نقطة المنتصف التي ستُستخدم داخل الودجتات."
+        case (.customImageSaved, .english): return "Custom widget image saved."
+        case (.customImageSaved, .arabic): return "تم حفظ صورة الودجت المخصصة."
+        case (.customImageRemoved, .english): return "Custom widget image removed."
+        case (.customImageRemoved, .arabic): return "تمت إزالة صورة الودجت المخصصة."
+        case (.saveAppearance, .english): return "Save Appearance"
+        case (.saveAppearance, .arabic): return "حفظ المظهر"
+        case (.savedForWidget, .english): return "Saved %@ for the widget."
+        case (.savedForWidget, .arabic): return "تم حفظ %@ للودجت."
+        case (.widgetLocationUpdated, .english): return "Widget location updated."
+        case (.widgetLocationUpdated, .arabic): return "تم تحديث موقع الودجت."
+        case (.currentLocationSaved, .english): return "Current location saved for the widget."
+        case (.currentLocationSaved, .arabic): return "تم حفظ الموقع الحالي للودجت."
+        case (.styleSaved, .english): return "Widget style saved."
+        case (.styleSaved, .arabic): return "تم حفظ مظهر الودجت."
+        case (.enterCityFirst, .english): return "Please enter a city name first."
+        case (.enterCityFirst, .arabic): return "الرجاء إدخال اسم المدينة أولاً."
+        case (.cityLookupFailed, .english): return "Couldn't find that city. Try a nearby major city."
+        case (.cityLookupFailed, .arabic): return "تعذر العثور على هذه المدينة. جرّب مدينة رئيسية قريبة."
+        case (.locationPermissionDisabled, .english): return "Location permission is disabled. Please allow location access in Settings."
+        case (.locationPermissionDisabled, .arabic): return "تم تعطيل إذن الموقع. يرجى السماح بالوصول إلى الموقع من الإعدادات."
+        case (.chooseLanguage, .english): return "Choose Language"
+        case (.chooseLanguage, .arabic): return "اختر اللغة"
+        case (.today, .english): return "Today"
+        case (.today, .arabic): return "اليوم"
+        case (.hijri, .english): return "Hijri"
+        case (.hijri, .arabic): return "هجري"
+        case (.gregorian, .english): return "Gregorian"
+        case (.gregorian, .arabic): return "ميلادي"
+        case (.prayerTimes, .english): return "Prayer Times"
+        case (.prayerTimes, .arabic): return "مواقيت الصلاة"
+        case (.upcomingPrayers, .english): return "Upcoming Prayers"
+        case (.upcomingPrayers, .arabic): return "الصلوات القادمة"
+        case (.remainingTime, .english): return "Time Remaining"
+        case (.remainingTime, .arabic): return "الوقت المتبقي"
+        case (.day, .english): return "Day"
+        case (.day, .arabic): return "اليوم"
+        case (.month, .english): return "Month"
+        case (.month, .arabic): return "الشهر"
+        case (.solarYear, .english): return "Solar Year"
+        case (.solarYear, .arabic): return "السنة الشمسية"
+        case (.wisdomOfTheDay, .english): return "Wisdom of the Day"
+        case (.wisdomOfTheDay, .arabic): return "حكمة اليوم"
+        }
+    }
+}
+
+enum WidgetTextScale: String, CaseIterable, Codable, Identifiable {
+    case compact
+    case regular
+    case large
+
+    var id: String { rawValue }
+
+    var multiplier: CGFloat {
+        switch self {
+        case .compact: return 0.88
+        case .regular: return 1
+        case .large: return 1.14
+        }
+    }
+
+    func title(for language: AppLanguage) -> String {
+        switch (self, language) {
+        case (.compact, .english): return "Compact"
+        case (.compact, .arabic): return "صغير"
+        case (.regular, .english): return "Regular"
+        case (.regular, .arabic): return "متوسط"
+        case (.large, .english): return "Large"
+        case (.large, .arabic): return "كبير"
+        }
+    }
+}
+
+enum Prayer: String, CaseIterable, Codable, Identifiable {
+    case fajr
+    case sunrise
+    case dhuhr
+    case asr
+    case maghrib
+    case isha
+
+    var id: String { rawValue }
+
+    func title(for language: AppLanguage) -> String {
+        switch (self, language) {
+        case (.fajr, .english): return "Fajr"
+        case (.fajr, .arabic): return "الفجر"
+        case (.sunrise, .english): return "Sunrise"
+        case (.sunrise, .arabic): return "الشروق"
+        case (.dhuhr, .english): return "Dhuhr"
+        case (.dhuhr, .arabic): return "الظهر"
+        case (.asr, .english): return "Asr"
+        case (.asr, .arabic): return "العصر"
+        case (.maghrib, .english): return "Maghrib"
+        case (.maghrib, .arabic): return "المغرب"
+        case (.isha, .english): return "Isha"
+        case (.isha, .arabic): return "العشاء"
+        }
+    }
+}
+
+struct PrayerMoment: Identifiable, Hashable {
+    let prayer: Prayer
+    let date: Date
+
+    var id: String {
+        "\(prayer.rawValue)-\(date.timeIntervalSince1970)"
+    }
+}
+
+enum WidgetFontStyle: String, CaseIterable, Codable, Identifiable {
+    case rubik
+    case cairo
+    case tajawal
+    case playpenSansArabic
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .rubik: return "Rubik"
+        case .cairo: return "Cairo"
+        case .tajawal: return "Tajawal"
+        case .playpenSansArabic: return "Playpen Sans Arabic"
+        }
+    }
+
+    var design: Font.Design {
+        switch self {
+        case .rubik, .cairo, .tajawal, .playpenSansArabic: return .default
+        }
+    }
+
+    func font(size: CGFloat, weight: Font.Weight = .regular) -> Font {
+        if let customName = fontName(for: weight), UIFont(name: customName, size: size) != nil {
+            return .custom(customName, size: size)
+        }
+
+        return .system(size: size, weight: weight, design: design)
+    }
+
+    private func fontName(for weight: Font.Weight) -> String? {
+        switch self {
+        case .rubik:
+            switch weight {
+            case .bold, .heavy, .black: return "Rubik-Light_Bold"
+            case .semibold: return "Rubik-Light_SemiBold"
+            case .medium: return "Rubik-Light_Medium"
+            default: return "Rubik-Light_Regular"
+            }
+        case .cairo:
+            switch weight {
+            case .bold, .heavy, .black: return "Cairo-Regular_Bold"
+            case .semibold: return "Cairo-Regular_SemiBold"
+            case .medium: return "Cairo-Regular_Medium"
+            default: return "Cairo-Regular"
+            }
+        case .tajawal:
+            switch weight {
+            case .bold, .heavy, .black, .semibold, .medium: return "Tajawal-Bold"
+            default: return "Tajawal-Regular"
+            }
+        case .playpenSansArabic:
+            switch weight {
+            case .bold, .heavy, .black: return "PlaypenSansArabic-Bold"
+            case .semibold: return "PlaypenSansArabic-SemiBold"
+            case .medium: return "PlaypenSansArabic-Medium"
+            default: return "PlaypenSansArabic-Regular"
+            }
+        }
+    }
+}
+
+struct WidgetTheme: Codable, Hashable {
+    var backgroundHex: String
+    var textHex: String
+    var fontStyle: WidgetFontStyle
+    var textScale: WidgetTextScale
+    var fontSizeMultiplier: Double
+
+    enum CodingKeys: String, CodingKey {
+        case backgroundHex
+        case textHex
+        case fontStyle
+        case textScale
+        case fontSizeMultiplier
+    }
+
+    init(
+        backgroundHex: String,
+        textHex: String,
+        fontStyle: WidgetFontStyle,
+        textScale: WidgetTextScale = .regular,
+        fontSizeMultiplier: Double = 1
+    ) {
+        self.backgroundHex = backgroundHex
+        self.textHex = textHex
+        self.fontStyle = fontStyle
+        self.textScale = textScale
+        self.fontSizeMultiplier = fontSizeMultiplier
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        backgroundHex = try container.decodeIfPresent(String.self, forKey: .backgroundHex) ?? "#123524"
+        textHex = try container.decodeIfPresent(String.self, forKey: .textHex) ?? "#F9F7F1"
+        fontStyle = try container.decodeIfPresent(WidgetFontStyle.self, forKey: .fontStyle) ?? .cairo
+        textScale = try container.decodeIfPresent(WidgetTextScale.self, forKey: .textScale) ?? .regular
+        fontSizeMultiplier = try container.decodeIfPresent(Double.self, forKey: .fontSizeMultiplier) ?? 1
+    }
+
+    static let `default` = WidgetTheme(
+        backgroundHex: "#123524",
+        textHex: "#F9F7F1",
+        fontStyle: .cairo,
+        textScale: .regular,
+        fontSizeMultiplier: 1
+    )
+}
+
+enum WidgetColorChoice: String, CaseIterable, Codable, Identifiable {
+    case forest
+    case emerald
+    case olive
+    case sand
+    case gold
+    case midnight
+    case plum
+    case rose
+    case terracotta
+    case sky
+    case slate
+    case cream
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .forest: return "Forest"
+        case .emerald: return "Emerald"
+        case .olive: return "Olive"
+        case .sand: return "Sand"
+        case .gold: return "Gold"
+        case .midnight: return "Midnight"
+        case .plum: return "Plum"
+        case .rose: return "Rose"
+        case .terracotta: return "Terracotta"
+        case .sky: return "Sky"
+        case .slate: return "Slate"
+        case .cream: return "Cream"
+        }
+    }
+
+    var hex: String {
+        switch self {
+        case .forest: return "#123524"
+        case .emerald: return "#1E6F5C"
+        case .olive: return "#708238"
+        case .sand: return "#D7C3A5"
+        case .gold: return "#B88A44"
+        case .midnight: return "#16213E"
+        case .plum: return "#5B3256"
+        case .rose: return "#B76E79"
+        case .terracotta: return "#B85C38"
+        case .sky: return "#83C5BE"
+        case .slate: return "#2F4858"
+        case .cream: return "#F6F1E9"
+        }
+    }
+
+    var color: Color {
+        Color(hex: hex)
+    }
+}
+
+struct PrayerSettings: Codable, Hashable {
+    var city: String
+    var latitude: Double
+    var longitude: Double
+    var usesCurrentLocation: Bool
+    var language: AppLanguage
+    var theme: WidgetTheme
+    var showsCustomPhoto: Bool
+    var customPhotoFocusX: Double
+    var customPhotoFocusY: Double
+    var customPhotoRevision: String
+
+    enum CodingKeys: String, CodingKey {
+        case city
+        case latitude
+        case longitude
+        case usesCurrentLocation
+        case language
+        case theme
+        case showsCustomPhoto
+        case customPhotoFocusX
+        case customPhotoFocusY
+        case customPhotoRevision
+    }
+
+    init(
+        city: String,
+        latitude: Double,
+        longitude: Double,
+        usesCurrentLocation: Bool,
+        language: AppLanguage,
+        theme: WidgetTheme,
+        showsCustomPhoto: Bool = false,
+        customPhotoFocusX: Double = 0.5,
+        customPhotoFocusY: Double = 0.5,
+        customPhotoRevision: String = ""
+    ) {
+        self.city = city
+        self.latitude = latitude
+        self.longitude = longitude
+        self.usesCurrentLocation = usesCurrentLocation
+        self.language = language
+        self.theme = theme
+        self.showsCustomPhoto = showsCustomPhoto
+        self.customPhotoFocusX = customPhotoFocusX
+        self.customPhotoFocusY = customPhotoFocusY
+        self.customPhotoRevision = customPhotoRevision
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        city = try container.decodeIfPresent(String.self, forKey: .city) ?? "Makkah"
+        latitude = try container.decodeIfPresent(Double.self, forKey: .latitude) ?? 21.3891
+        longitude = try container.decodeIfPresent(Double.self, forKey: .longitude) ?? 39.8579
+        usesCurrentLocation = try container.decodeIfPresent(Bool.self, forKey: .usesCurrentLocation) ?? false
+        language = try container.decodeIfPresent(AppLanguage.self, forKey: .language) ?? .arabic
+        theme = try container.decodeIfPresent(WidgetTheme.self, forKey: .theme) ?? .default
+        showsCustomPhoto = try container.decodeIfPresent(Bool.self, forKey: .showsCustomPhoto) ?? false
+        customPhotoFocusX = try container.decodeIfPresent(Double.self, forKey: .customPhotoFocusX) ?? 0.5
+        customPhotoFocusY = try container.decodeIfPresent(Double.self, forKey: .customPhotoFocusY) ?? 0.5
+        customPhotoRevision = try container.decodeIfPresent(String.self, forKey: .customPhotoRevision) ?? ""
+    }
+
+    var customPhotoFocusPoint: CGPoint {
+        CGPoint(x: customPhotoFocusX, y: customPhotoFocusY)
+    }
+
+    static let `default` = PrayerSettings(
+        city: "Makkah",
+        latitude: 21.3891,
+        longitude: 39.8579,
+        usesCurrentLocation: false,
+        language: .arabic,
+        theme: WidgetTheme(
+            backgroundHex: "#123524",
+            textHex: "#F9F7F1",
+            fontStyle: .cairo
+        ),
+        showsCustomPhoto: false,
+        customPhotoFocusX: 0.5,
+        customPhotoFocusY: 0.5,
+        customPhotoRevision: ""
+    )
+}
+
+struct SaudiSolarHijriDate: Hashable {
+    let day: Int
+    let monthNameArabic: String
+    let year: Int
+
+    func monthName(for language: AppLanguage) -> String {
+        guard !language.isArabic else { return monthNameArabic }
+
+        switch monthNameArabic {
+        case "الحمل": return "Aries"
+        case "الثور": return "Taurus"
+        case "الجوزاء": return "Gemini"
+        case "السرطان": return "Cancer"
+        case "الأسد": return "Leo"
+        case "السنبلة": return "Virgo"
+        case "الميزان": return "Libra"
+        case "العقرب": return "Scorpio"
+        case "القوس": return "Sagittarius"
+        case "الجدي": return "Capricorn"
+        case "الدلو": return "Aquarius"
+        case "الحوت": return "Pisces"
+        default: return monthNameArabic
+        }
+    }
+
+    static func from(gregorian date: Date) -> SaudiSolarHijriDate {
+        let calendar = Calendar(identifier: .gregorian)
+        let components = calendar.dateComponents([.year, .month, .day], from: date)
+
+        guard
+            let gregorianYear = components.year,
+            let month = components.month,
+            let day = components.day
+        else {
+            return SaudiSolarHijriDate(day: 1, monthNameArabic: "الحمل", year: 1400)
+        }
+
+        let startOfSolarYearMonth = 3
+        let startOfSolarYearDay = 21
+        let solarYear = (month > startOfSolarYearMonth || (month == startOfSolarYearMonth && day >= startOfSolarYearDay))
+            ? gregorianYear - 621
+            : gregorianYear - 622
+
+        let boundaries: [(month: Int, day: Int, name: String)] = [
+            (3, 21, "الحمل"),
+            (4, 21, "الثور"),
+            (5, 22, "الجوزاء"),
+            (6, 22, "السرطان"),
+            (7, 23, "الأسد"),
+            (8, 23, "السنبلة"),
+            (9, 23, "الميزان"),
+            (10, 23, "العقرب"),
+            (11, 22, "القوس"),
+            (12, 22, "الجدي"),
+            (1, 21, "الدلو"),
+            (2, 20, "الحوت"),
+        ]
+
+        let currentKey = month * 100 + day
+        let ordered = boundaries.sorted {
+            ($0.month * 100 + $0.day) < ($1.month * 100 + $1.day)
+        }
+
+        var selected = ordered.last { currentKey >= ($0.month * 100 + $0.day) }
+        if selected == nil {
+            selected = ordered.last
+        }
+
+        guard let active = selected else {
+            return SaudiSolarHijriDate(day: 1, monthNameArabic: "الحمل", year: solarYear)
+        }
+
+        let startYear = active.month > month ? gregorianYear - 1 : gregorianYear
+        let startDate = calendar.date(from: DateComponents(year: startYear, month: active.month, day: active.day)) ?? date
+        let dayNumber = (calendar.dateComponents([.day], from: startDate, to: date).day ?? 0) + 1
+
+        return SaudiSolarHijriDate(day: max(dayNumber, 1), monthNameArabic: active.name, year: solarYear)
+    }
+}
+
+extension Color {
+    init(hex: String) {
+        let sanitized = hex
+            .trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var value: UInt64 = 0
+        Scanner(string: sanitized).scanHexInt64(&value)
+
+        let red, green, blue, alpha: UInt64
+        switch sanitized.count {
+        case 8:
+            (alpha, red, green, blue) = (
+                (value >> 24) & 0xFF,
+                (value >> 16) & 0xFF,
+                (value >> 8) & 0xFF,
+                value & 0xFF
+            )
+        default:
+            (alpha, red, green, blue) = (255, (value >> 16) & 0xFF, (value >> 8) & 0xFF, value & 0xFF)
+        }
+
+        self.init(
+            .sRGB,
+            red: Double(red) / 255,
+            green: Double(green) / 255,
+            blue: Double(blue) / 255,
+            opacity: Double(alpha) / 255
+        )
+    }
+
+    var hexString: String {
+        UIColor(self).hexString
+    }
+}
+
+extension UIColor {
+    var hexString: String {
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+
+        getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+
+        let rgba = (
+            Int(round(red * 255)),
+            Int(round(green * 255)),
+            Int(round(blue * 255)),
+            Int(round(alpha * 255))
+        )
+
+        if rgba.3 < 255 {
+            return String(format: "#%02X%02X%02X%02X", rgba.3, rgba.0, rgba.1, rgba.2)
+        }
+
+        return String(format: "#%02X%02X%02X", rgba.0, rgba.1, rgba.2)
+    }
+}
