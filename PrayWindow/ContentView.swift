@@ -40,6 +40,14 @@ struct ContentView: View {
         settings.language
     }
 
+    private var appPrimaryText: Color {
+        Color(hex: "#183A2A")
+    }
+
+    private var appSecondaryText: Color {
+        Color(hex: "#42554B")
+    }
+
     var body: some View {
         TabView(selection: $selectedTab) {
             NavigationStack {
@@ -50,6 +58,9 @@ struct ContentView: View {
                 .background(appBackground.ignoresSafeArea())
                 .navigationTitle(language.isArabic ? "الإعدادات" : "Settings")
                 .toolbarTitleDisplayMode(.inline)
+                .toolbarBackground(Color(hex: "#F8F4EA"), for: .navigationBar)
+                .toolbarBackground(.visible, for: .navigationBar)
+                .toolbarColorScheme(.light, for: .navigationBar)
             }
             .tabItem {
                 Label(language.isArabic ? "الإعدادات" : "Settings", systemImage: "slider.horizontal.3")
@@ -64,12 +75,19 @@ struct ContentView: View {
                 .background(appBackground.ignoresSafeArea())
                 .navigationTitle(language.isArabic ? "عن التطبيق" : "About")
                 .toolbarTitleDisplayMode(.inline)
+                .toolbarBackground(Color(hex: "#F8F4EA"), for: .navigationBar)
+                .toolbarBackground(.visible, for: .navigationBar)
+                .toolbarColorScheme(.light, for: .navigationBar)
             }
             .tabItem {
                 Label(language.isArabic ? "عن التطبيق" : "About", systemImage: "info.circle.fill")
             }
             .tag(1)
         }
+        .tint(Color(hex: "#183A2A"))
+        .toolbarBackground(Color(hex: "#F8F4EA"), for: .tabBar)
+        .toolbarBackground(.visible, for: .tabBar)
+        .toolbarColorScheme(.light, for: .tabBar)
         .environment(\.layoutDirection, language.layoutDirection)
         .onAppear {
             syncSelectionsFromSettings()
@@ -104,9 +122,7 @@ struct ContentView: View {
     private var settingsTab: some View {
         VStack(alignment: .leading, spacing: 24) {
             if !savedMessage.isEmpty {
-                Text(savedMessage)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                statusBanner(savedMessage)
             }
             settingsHero
             appearanceSection
@@ -150,30 +166,41 @@ struct ContentView: View {
 
     private var settingsHero: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(language.isArabic ? "إعدادات الودجت" : "Widget Settings")
-                .font(settings.theme.fontStyle.font(size: 30, weight: .bold))
-                .foregroundStyle(Color(hex: "#183A2A"))
+            Text(language.isArabic ? "لوحة إعدادات الودجت" : "Widget Control Center")
+                .font(settings.theme.fontStyle.font(size: 32, weight: .bold))
+                .foregroundStyle(appPrimaryText)
 
-            Text(language.isArabic ? "اختر اللغة والموقع والألوان بطريقة مبسطة، ثم احفظ التعديلات مباشرة للودجت." : "Choose language, location, and colors with a simpler setup flow, then save the changes directly to the widget.")
+            Text(language.isArabic ? "رتّب المظهر، حدّد الموقع، واختر الصورة المناسبة من أقسام واضحة ومتوازنة قبل نشر الودجت للواجهة الرئيسية." : "Tune the look, location, and imagery through clearer sections before publishing the widget to the Home Screen.")
                 .font(settings.theme.fontStyle.font(size: 15, weight: .regular))
-                .foregroundStyle(Color(hex: "#42554B"))
+                .foregroundStyle(appSecondaryText)
+
+            HStack(spacing: 10) {
+                heroPill(icon: "paintpalette.fill", title: language.text(.appearance))
+                heroPill(icon: "location.fill", title: language.text(.location))
+                heroPill(icon: "sparkles.rectangle.stack.fill", title: language.isArabic ? "المعاينة" : "Preview")
+            }
         }
-        .padding(22)
-        .background(Color.white.opacity(0.76), in: RoundedRectangle(cornerRadius: 30, style: .continuous))
+        .padding(24)
+        .background(
+            RoundedRectangle(cornerRadius: 32, style: .continuous)
+                .fill(Color.white.opacity(0.82))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 32, style: .continuous)
+                        .stroke(Color.white.opacity(0.65), lineWidth: 1)
+                )
+        )
     }
 
     private var languageIconSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(language.text(.chooseLanguage))
-                .font(.title3.weight(.semibold))
-
+        settingsSectionCard(
+            title: language.text(.chooseLanguage),
+            subtitle: language.isArabic ? "اختر لغة التطبيق والودجت من أزرار موحّدة وواضحة." : "Choose the app and widget language using balanced, clear controls."
+        ) {
             HStack(spacing: 12) {
                 languageIconButton(for: .arabic, icon: "character.book.closed.fill", title: "ع")
                 languageIconButton(for: .english, icon: "textformat.abc", title: "EN")
             }
         }
-        .padding(20)
-        .background(Color.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 28, style: .continuous))
     }
 
     private func languageIconButton(for appLanguage: AppLanguage, icon: String, title: String) -> some View {
@@ -191,7 +218,7 @@ struct ContentView: View {
             }
             .foregroundStyle(selected ? Color.white : Color(hex: "#183A2A"))
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
+            .frame(minHeight: 58)
             .background(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
                     .fill(selected ? Color(hex: "#183A2A") : Color.white.opacity(0.9))
@@ -205,11 +232,12 @@ struct ContentView: View {
     }
 
     private var locationSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text(language.text(.location))
-                .font(.title3.weight(.semibold))
-
+        settingsSectionCard(
+            title: language.text(.location),
+            subtitle: language.isArabic ? "حدّد المدينة يدويًا أو استخدم موقعك الحالي، مع وصول أسرع للمدن الشائعة." : "Set the city manually or use your current location, with quicker access to common cities."
+        ) {
             TextField(language.text(.cityName), text: $cityInput)
+                .foregroundStyle(appPrimaryText)
                 .textInputAutocapitalization(.words)
                 .submitLabel(.done)
                 .onSubmit {
@@ -220,8 +248,9 @@ struct ContentView: View {
                 .onChange(of: cityInput) {
                     scheduleCityAutoSave()
                 }
-                .padding()
-                .background(Color.white, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .padding(.horizontal, 16)
+                .frame(height: 54)
+                .background(inputBackground)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
@@ -279,15 +308,13 @@ struct ContentView: View {
                     .foregroundStyle(.red)
             }
         }
-        .padding(20)
-        .background(Color.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 28, style: .continuous))
     }
 
     private var appearanceSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(language.text(.appearance))
-                .font(.title3.weight(.semibold))
-
+        settingsSectionCard(
+            title: language.text(.appearance),
+            subtitle: language.isArabic ? "اضبط ألوان الخلفية والنص وحجم الخط والخط المستخدم بصياغة متناسقة." : "Adjust background, text color, font size, and typeface through a more consistent visual setup."
+        ) {
             colorPickerRow(
                 title: language.text(.background),
                 color: $backgroundColor
@@ -303,9 +330,9 @@ struct ContentView: View {
                     Text(language.text(.fontSize))
                         .font(.subheadline.weight(.semibold))
                     Spacer()
-                    Text(String(format: "%.2f", settings.theme.fontSizeMultiplier))
+                    Text(String(format: "%.1f", settings.theme.fontSizeMultiplier))
                         .font(.footnote.monospacedDigit())
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(appSecondaryText)
                 }
 
                 Slider(value: $settings.theme.fontSizeMultiplier, in: 0.7...1.6, step: 0.05)
@@ -322,7 +349,7 @@ struct ContentView: View {
                     Spacer()
                     Text(settings.theme.fontStyle.title)
                         .font(settings.theme.fontStyle.font(size: 14, weight: .semibold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(appSecondaryText)
                 }
 
                 Picker(language.text(.font), selection: $settings.theme.fontStyle) {
@@ -333,6 +360,7 @@ struct ContentView: View {
                     }
                 }
                 .pickerStyle(.menu)
+                .tint(appPrimaryText)
                 .onChange(of: settings.theme.fontStyle) {
                     saveThemeSettings()
                 }
@@ -351,8 +379,6 @@ struct ContentView: View {
                 await saveSelectedPhoto()
             }
         }
-        .padding(20)
-        .background(Color.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 28, style: .continuous))
     }
 
     private var widgetImageSection: some View {
@@ -361,16 +387,40 @@ struct ContentView: View {
                 Text(language.text(.widgetImage))
                     .font(.subheadline.weight(.semibold))
                 Spacer()
-                Text(settings.showsCustomPhoto ? (language.isArabic ? "مخصصة" : "Custom") : (language.isArabic ? "مكة" : "Makkah"))
+                Text(settings.photoChoice.title(for: language))
                     .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(appSecondaryText)
             }
 
-            Text(language.text(.imageFocusPoint))
+            Text(language.text(.bundledImages))
                 .font(.footnote.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(appSecondaryText)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(imageChoicesForDisplay) { choice in
+                        photoChoiceCard(for: choice)
+                    }
+                }
+                .padding(.vertical, 2)
+            }
+
+            PhotosPicker(
+                selection: $selectedPhotoItem,
+                matching: .images,
+                preferredItemEncoding: .compatible,
+                photoLibrary: .shared()
+            ) {
+                Text(language.text(.uploadImage))
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(FilledActionButtonStyle())
 
             if let activeWidgetPhotoImage {
+                Text(language.text(.imageFocusPoint))
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(appSecondaryText)
+
                 WidgetPhotoFocusEditor(
                     image: activeWidgetPhotoImage,
                     focusPoint: settings.customPhotoFocusPoint,
@@ -387,56 +437,87 @@ struct ContentView: View {
                 )
                 .frame(height: 220)
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+
+                Text(language.text(.imageFocusHint))
+                    .font(.footnote)
+                    .foregroundStyle(appSecondaryText)
             }
 
-            Text(language.text(.imageFocusHint))
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-
-            HStack(spacing: 12) {
-                PhotosPicker(
-                    selection: $selectedPhotoItem,
-                    matching: .images,
-                    preferredItemEncoding: .compatible,
-                    photoLibrary: .shared()
-                ) {
-                    Text(settings.showsCustomPhoto ? language.text(.replaceImage) : language.text(.chooseImage))
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(FilledActionButtonStyle())
-
-                Button(language.text(.removeImage)) {
-                    removeCustomPhoto()
-                }
-                .buttonStyle(OutlineActionButtonStyle())
-                .disabled(!settings.showsCustomPhoto)
+            Button(language.text(.removeImage)) {
+                removeSelectedPhoto()
             }
+            .buttonStyle(OutlineActionButtonStyle())
+            .disabled(settings.photoChoice == .none)
         }
     }
 
-    private var previewGallerySection: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            Text(language.isArabic ? "معاينة جميع المقاسات" : "All Widget Sizes")
-                .font(.title3.weight(.semibold))
+    private var imageChoicesForDisplay: [WidgetPhotoChoice] {
+        var choices: [WidgetPhotoChoice] = [.none, .makkah, .madinah, .alquds]
+        if customPhotoPreviewImage != nil || !settings.customPhotoRevision.isEmpty {
+            choices.append(.custom)
+        }
+        return choices
+    }
 
+    private func photoChoiceCard(for choice: WidgetPhotoChoice) -> some View {
+        let isSelected = settings.photoChoice == choice
+
+        return Button {
+            selectPhotoChoice(choice)
+        } label: {
+            VStack(alignment: .leading, spacing: 8) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .fill(Color.white.opacity(0.92))
+
+                    if let image = previewImage(for: choice) {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFill()
+                    } else {
+                        VStack(spacing: 8) {
+                            Image(systemName: "rectangle.fill")
+                                .font(.system(size: 28, weight: .semibold))
+                            Text(language.text(.noImage))
+                                .font(WidgetFontStyle.rubik.font(size: 13, weight: .semibold))
+                        }
+                        .foregroundStyle(Color(hex: "#42554B"))
+                    }
+                }
+                .frame(width: 132, height: 94)
+                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .stroke(isSelected ? Color(hex: "#183A2A") : Color.black.opacity(0.08), lineWidth: isSelected ? 2 : 1)
+                )
+
+                Text(choice.title(for: language))
+                    .font(WidgetFontStyle.rubik.font(size: 14, weight: .semibold))
+                    .foregroundStyle(Color(hex: "#183A2A"))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(width: 132)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var previewGallerySection: some View {
+        settingsSectionCard(
+            title: language.isArabic ? "معاينة جميع المقاسات" : "All Widget Sizes",
+            subtitle: language.isArabic ? "راجع شكل كل ويدجت قبل النشر، مع فصل بصري واضح لكل مقاس." : "Review each widget before release with a cleaner visual separation for every size."
+        ) {
             widgetPreviewStack
         }
-        .padding(20)
-        .background(Color.white.opacity(0.72), in: RoundedRectangle(cornerRadius: 28, style: .continuous))
     }
 
     private var widgetPreviewStack: some View {
         VStack(alignment: .leading, spacing: 18) {
-            VStack(alignment: .leading, spacing: 12) {
-                Text(language.isArabic ? "التقويم الكبير" : "Calendar Large")
-                    .font(.subheadline.weight(.semibold))
+            previewGroup(title: language.isArabic ? "التقويم الكبير" : "Calendar Large") {
                 CalendarWidgetPreviewCard(settings: previewSettings)
                     .frame(height: 390)
             }
 
-            VStack(alignment: .leading, spacing: 12) {
-                Text(language.isArabic ? "الكبير" : "Large")
-                    .font(.subheadline.weight(.semibold))
+            previewGroup(title: language.isArabic ? "الكبير" : "Large") {
                 WidgetPreviewCard(
                     settings: previewSettings,
                     nextPrayer: previewNextPrayer,
@@ -445,9 +526,7 @@ struct ContentView: View {
                 .frame(height: 340)
             }
 
-            VStack(alignment: .leading, spacing: 12) {
-                Text(language.isArabic ? "المتوسط" : "Medium")
-                    .font(.subheadline.weight(.semibold))
+            previewGroup(title: language.isArabic ? "المتوسط" : "Medium") {
                 WidgetPreviewCard(
                     settings: previewSettings,
                     nextPrayer: previewNextPrayer,
@@ -456,9 +535,7 @@ struct ContentView: View {
                 .frame(height: 170)
             }
 
-            VStack(alignment: .leading, spacing: 12) {
-                Text(language.isArabic ? "المتوسط - الصورة" : "Medium - Image")
-                    .font(.subheadline.weight(.semibold))
+            previewGroup(title: language.isArabic ? "المتوسط - الصورة" : "Medium - Image") {
                 ImagePrayerWidgetPreviewCard(
                     settings: previewSettings,
                     nextPrayer: previewNextPrayer
@@ -466,27 +543,136 @@ struct ContentView: View {
                 .frame(height: 170)
             }
 
-            VStack(alignment: .leading, spacing: 12) {
-                Text(language.isArabic ? "الصغير" : "Small")
-                    .font(.subheadline.weight(.semibold))
-                WidgetPreviewCard(
-                    settings: previewSettings,
-                    nextPrayer: previewNextPrayer,
-                    family: .systemSmall
-                )
-                .frame(width: 170, height: 170)
+            previewGroup(title: language.isArabic ? "المتوسط - التاريخ والحكمة" : "Medium - Date & Wisdom") {
+                DateWisdomWidgetPreviewCard(settings: previewSettings)
+                    .frame(height: 170)
             }
 
-            VStack(alignment: .leading, spacing: 12) {
-                Text(language.isArabic ? "الصغير - الوقت المتبقي" : "Small - Time Remaining")
-                    .font(.subheadline.weight(.semibold))
-                CountdownWidgetPreviewCard(
-                    settings: previewSettings,
-                    nextPrayer: previewNextPrayer
-                )
-                .frame(width: 170, height: 170)
+            HStack(alignment: .top, spacing: 14) {
+                previewGroup(title: language.isArabic ? "الصغير" : "Small") {
+                    WidgetPreviewCard(
+                        settings: previewSettings,
+                        nextPrayer: previewNextPrayer,
+                        family: .systemSmall
+                    )
+                    .frame(width: 170, height: 170)
+                }
+
+                previewGroup(title: language.isArabic ? "الصغير - الوقت المتبقي" : "Small - Time Remaining") {
+                    CountdownWidgetPreviewCard(
+                        settings: previewSettings,
+                        nextPrayer: previewNextPrayer
+                    )
+                        .frame(width: 170, height: 170)
+                }
+            }
+
+            previewGroup(title: language.isArabic ? "قفل الشاشة" : "Lock Screen") {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(language.isArabic ? "معاينة تقريبية لويدجت قفل الشاشة" : "Approximate Lock Screen widget preview")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(appSecondaryText)
+
+                    HStack(alignment: .center, spacing: 14) {
+                        LockScreenCountdownPreviewCard(
+                            settings: previewSettings,
+                            nextPrayer: previewNextPrayer
+                        )
+
+                        LockScreenPrayerPreviewCard(
+                            settings: previewSettings,
+                            nextPrayer: previewNextPrayer
+                        )
+                    }
+                }
             }
         }
+    }
+
+    private var inputBackground: some View {
+        RoundedRectangle(cornerRadius: 20, style: .continuous)
+            .fill(Color.white.opacity(0.92))
+            .overlay(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .stroke(Color.black.opacity(0.06), lineWidth: 1)
+            )
+    }
+
+    private func statusBanner(_ message: String) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundStyle(Color(hex: "#1E6F5C"))
+            Text(message)
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(appPrimaryText)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Color.white.opacity(0.84))
+        )
+    }
+
+    private func heroPill(icon: String, title: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 13, weight: .bold))
+            Text(title)
+                .font(.system(size: 12, weight: .semibold, design: .rounded))
+        }
+        .foregroundStyle(appPrimaryText)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 9)
+        .background(Color.white.opacity(0.88), in: Capsule())
+    }
+
+    private func settingsSectionCard<Content: View>(title: String, subtitle: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(title)
+                    .font(settings.theme.fontStyle.font(size: 20, weight: .bold))
+                    .foregroundStyle(appPrimaryText)
+
+                Text(subtitle)
+                    .font(settings.theme.fontStyle.font(size: 13.5, weight: .regular))
+                    .foregroundStyle(appSecondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            content()
+        }
+        .foregroundStyle(appPrimaryText)
+        .padding(22)
+        .background(
+            RoundedRectangle(cornerRadius: 30, style: .continuous)
+                .fill(Color.white.opacity(0.78))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 30, style: .continuous)
+                        .stroke(Color.white.opacity(0.72), lineWidth: 1)
+                )
+        )
+    }
+
+    private func previewGroup<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(appPrimaryText)
+
+            content()
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(Color.white.opacity(0.58))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(Color.black.opacity(0.05), lineWidth: 1)
+                )
+        )
     }
 
     private func colorPickerRow(title: String, color: Binding<Color>) -> some View {
@@ -504,16 +690,18 @@ struct ContentView: View {
                     .font(.subheadline.weight(.semibold))
                 Text(color.wrappedValue.hexString)
                     .font(.footnote.monospaced())
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(appSecondaryText)
             }
 
             Spacer()
 
             ColorPicker("", selection: color, supportsOpacity: false)
                 .labelsHidden()
+                .frame(width: 44, height: 44)
         }
+        .foregroundStyle(appPrimaryText)
         .padding(14)
-        .background(Color.white.opacity(0.88), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .background(inputBackground)
     }
 
     private var previewSettings: PrayerSettings {
@@ -525,7 +713,19 @@ struct ContentView: View {
     }
 
     private var activeWidgetPhotoImage: UIImage? {
-        customPhotoPreviewImage ?? UIImage(named: "makkah_photo")
+        previewImage(for: settings.photoChoice)
+    }
+
+    private func previewImage(for choice: WidgetPhotoChoice) -> UIImage? {
+        switch choice {
+        case .none:
+            return nil
+        case .custom:
+            return customPhotoPreviewImage ?? WidgetSettingsStore.shared.customPhotoImage(revision: settings.customPhotoRevision)
+        case .makkah, .madinah, .alquds:
+            guard let assetName = choice.assetName else { return nil }
+            return UIImage(named: assetName)
+        }
     }
 
     private var previewNextPrayer: PrayerMoment {
@@ -568,19 +768,27 @@ struct ContentView: View {
 
         settings.customPhotoRevision = revision
         customPhotoPreviewImage = WidgetSettingsStore.shared.customPhotoImage(revision: revision)
-        settings.showsCustomPhoto = true
+        settings.photoChoice = .custom
         settings.customPhotoFocusX = 0.5
         settings.customPhotoFocusY = 0.5
         saveSettings(message: language.text(.customImageSaved))
     }
 
-    private func removeCustomPhoto() {
-        WidgetSettingsStore.shared.removeCustomPhoto(revision: settings.customPhotoRevision)
-        customPhotoPreviewImage = nil
-        settings.showsCustomPhoto = false
+    private func selectPhotoChoice(_ choice: WidgetPhotoChoice) {
+        settings.photoChoice = choice
+        saveSettings(message: language.text(.styleSaved))
+    }
+
+    private func removeSelectedPhoto() {
+        if settings.photoChoice == .custom {
+            WidgetSettingsStore.shared.removeCustomPhoto(revision: settings.customPhotoRevision)
+            customPhotoPreviewImage = nil
+            settings.customPhotoRevision = ""
+        }
+
+        settings.photoChoice = .none
         settings.customPhotoFocusX = 0.5
         settings.customPhotoFocusY = 0.5
-        settings.customPhotoRevision = ""
         saveSettings(message: language.text(.customImageRemoved))
     }
 
@@ -704,6 +912,89 @@ private struct ImagePrayerWidgetPreviewCard: View {
             moments: schedule.moments
         )
         .environment(\.layoutDirection, settings.language.layoutDirection)
+    }
+}
+
+private struct DateWisdomWidgetPreviewCard: View {
+    let settings: PrayerSettings
+
+    var body: some View {
+        PreviewDateWisdomMediumWidgetChrome(
+            entry: .init(
+                date: Date(),
+                settings: settings,
+                nextPrayer: PrayerCalculator.nextPrayer(from: Date(), latitude: settings.latitude, longitude: settings.longitude)
+            )
+        )
+        .environment(\.layoutDirection, settings.language.layoutDirection)
+    }
+}
+
+private struct LockScreenCountdownPreviewCard: View {
+    let settings: PrayerSettings
+    let nextPrayer: PrayerMoment
+
+    var body: some View {
+        VStack(spacing: 10) {
+            Text(settings.language.isArabic ? "الدائرية" : "Circular")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.white.opacity(0.82))
+
+            PreviewLockScreenCountdownCircularView(
+                entry: .init(date: Date(), settings: settings, nextPrayer: nextPrayer)
+            )
+            .frame(width: 88, height: 88)
+        }
+        .frame(maxWidth: .infinity, minHeight: 156)
+        .padding(.vertical, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [Color(hex: "#2D3E63"), Color(hex: "#243552")],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                )
+        )
+    }
+}
+
+private struct LockScreenPrayerPreviewCard: View {
+    let settings: PrayerSettings
+    let nextPrayer: PrayerMoment
+
+    var body: some View {
+        VStack(spacing: 10) {
+            Text(settings.language.isArabic ? "المستطيلة" : "Rectangular")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.white.opacity(0.82))
+
+            PreviewLockScreenPrayerRectangularView(
+                entry: .init(date: Date(), settings: settings, nextPrayer: nextPrayer)
+            )
+            .frame(width: 230, height: 88)
+        }
+        .frame(maxWidth: .infinity, minHeight: 156)
+        .padding(.vertical, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [Color(hex: "#2D3E63"), Color(hex: "#243552")],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                )
+        )
     }
 }
 
@@ -857,11 +1148,15 @@ private struct StarSectionRowView: View {
 
 private enum PreviewWidgetPhotoSource {
     static func uiImage(for settings: PrayerSettings) -> UIImage? {
-        if settings.showsCustomPhoto, let image = WidgetSettingsStore.shared.customPhotoImage(revision: settings.customPhotoRevision) {
-            return image
+        switch settings.photoChoice {
+        case .none:
+            return nil
+        case .custom:
+            return WidgetSettingsStore.shared.customPhotoImage(revision: settings.customPhotoRevision)
+        case .makkah, .madinah, .alquds:
+            guard let assetName = settings.photoChoice.assetName else { return nil }
+            return UIImage(named: assetName)
         }
-
-        return UIImage(named: "makkah_photo")
     }
 }
 
@@ -1579,6 +1874,284 @@ private struct PreviewImagePrayerMediumWidgetChrome: View {
     }
 }
 
+private struct PreviewDateWisdomMediumWidgetChrome: View {
+    let entry: PrayWindowPreviewEntry
+
+    private var language: AppLanguage { entry.settings.language }
+    private var locale: Locale { language.locale }
+    private var background: Color { Color(hex: entry.settings.theme.backgroundHex) }
+    private var foreground: Color { Color(hex: entry.settings.theme.textHex) }
+    private var panelBackground: Color { background.opacity(0.76) }
+    private var panelBorder: Color { foreground.opacity(0.14) }
+
+    var body: some View {
+        GeometryReader { proxy in
+            let metrics = PreviewMetrics(
+                size: proxy.size,
+                multiplier: entry.settings.theme.textScale.multiplier * CGFloat(entry.settings.theme.fontSizeMultiplier)
+            )
+
+            HStack(spacing: 0) {
+                infoPanel(metrics: metrics)
+                    .frame(width: proxy.size.width * 0.52)
+
+                imagePanel(metrics: metrics)
+                    .frame(maxWidth: .infinity)
+            }
+            .environment(\.layoutDirection, .leftToRight)
+            .background(background)
+        }
+    }
+
+    private func infoPanel(metrics: PreviewMetrics) -> some View {
+        VStack(alignment: .center, spacing: metrics.inset(18)) {
+            Text(weekdayTitle)
+                .font(entry.settings.theme.fontStyle.font(size: metrics.font(24), weight: .bold))
+                .widgetTextFit(lines: 1, minScale: 0.6)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, alignment: .center)
+
+            HStack(alignment: .top, spacing: metrics.inset(12)) {
+                dateColumn(
+                    day: gregorianDay,
+                    month: gregorianMonth,
+                    year: gregorianYear,
+                    metrics: metrics,
+                    emphasized: false
+                )
+                dateColumn(
+                    day: hijriDay,
+                    month: hijriMonth,
+                    year: hijriYear,
+                    metrics: metrics,
+                    emphasized: true
+                )
+            }
+            .environment(\.layoutDirection, .leftToRight)
+            .frame(maxWidth: .infinity)
+
+            Spacer(minLength: metrics.inset(8))
+
+            Text(nextPrayerText)
+                .font(entry.settings.theme.fontStyle.font(size: metrics.font(11.4), weight: .semibold))
+                .widgetTextFit(lines: 1, minScale: 0.72)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, alignment: .center)
+        }
+        .foregroundStyle(foreground)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.horizontal, metrics.inset(14))
+        .padding(.vertical, metrics.inset(16))
+        .background(panelBackground)
+        .overlay(Rectangle().fill(panelBorder).frame(width: 1), alignment: .trailing)
+        .environment(\.layoutDirection, language.layoutDirection)
+    }
+
+    private func dateColumn(day: String, month: String, year: String, metrics: PreviewMetrics, emphasized: Bool) -> some View {
+        VStack(spacing: metrics.inset(3)) {
+            Text(day)
+                .font(entry.settings.theme.fontStyle.font(size: metrics.font(emphasized ? 21 : 19), weight: .bold))
+                .widgetTextFit(lines: 1, minScale: 0.7)
+
+            Text(month)
+                .font(entry.settings.theme.fontStyle.font(size: metrics.font(emphasized ? 14.4 : 13.4), weight: .semibold))
+                .widgetTextFit(lines: 2, minScale: 0.72)
+                .multilineTextAlignment(.center)
+
+            Text(year)
+                .font(entry.settings.theme.fontStyle.font(size: metrics.font(12), weight: .medium))
+                .widgetTextFit(lines: 1, minScale: 0.78)
+        }
+        .frame(maxWidth: .infinity, alignment: .center)
+    }
+
+    private func imagePanel(metrics: PreviewMetrics) -> some View {
+        ZStack {
+            if let image = PreviewWidgetPhotoSource.uiImage(for: entry.settings) {
+                WidgetPhotoFillView(image: image, focalPoint: entry.settings.customPhotoFocusPoint)
+            } else {
+                LinearGradient(
+                    colors: [background.opacity(0.92), background.opacity(0.68)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
+        }
+        .clipped()
+    }
+
+    private var weekdayTitle: String {
+        let formatter = DateFormatter()
+        formatter.locale = locale
+        formatter.setLocalizedDateFormatFromTemplate("EEEE")
+        return formatter.string(from: entry.date)
+    }
+
+    private var gregorianDay: String {
+        String(Calendar(identifier: .gregorian).component(.day, from: entry.date))
+    }
+
+    private var gregorianMonth: String {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = locale
+        formatter.setLocalizedDateFormatFromTemplate("MMMM")
+        return formatter.string(from: entry.date)
+    }
+
+    private var gregorianYear: String {
+        String(Calendar(identifier: .gregorian).component(.year, from: entry.date))
+    }
+
+    private var hijriDay: String {
+        String(Calendar(identifier: .islamicUmmAlQura).component(.day, from: entry.date))
+    }
+
+    private var hijriMonth: String {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .islamicUmmAlQura)
+        formatter.locale = locale
+        formatter.setLocalizedDateFormatFromTemplate("MMMM")
+        return formatter.string(from: entry.date)
+    }
+
+    private var hijriYear: String {
+        String(Calendar(identifier: .islamicUmmAlQura).component(.year, from: entry.date))
+    }
+
+    private var nextPrayerText: String {
+        let prayerName = entry.nextPrayer.prayer.title(for: language)
+        let prayerTime = PrayerDateFormatter.timeString(for: entry.nextPrayer.date, locale: locale)
+        if language.isArabic {
+            return "\(prayerName) \(prayerTime)"
+        }
+        return "\(prayerName) \(prayerTime)"
+    }
+}
+
+private struct PreviewLockScreenCountdownCircularView: View {
+    let entry: PrayWindowPreviewEntry
+
+    private var language: AppLanguage { entry.settings.language }
+    private var locale: Locale { language.locale }
+
+    var body: some View {
+        VStack(spacing: 2) {
+            Text(shortPrayerName)
+                .font(.system(size: 10, weight: .bold, design: .rounded))
+                .widgetTextFit(lines: 1, minScale: 0.6)
+
+            Text(entry.nextPrayer.date, style: .timer)
+                .font(.system(size: 12, weight: .bold, design: .rounded))
+                .monospacedDigit()
+                .widgetTextFit(lines: 1, minScale: 0.4)
+
+            Text(PrayerDateFormatter.timeString(for: entry.nextPrayer.date, locale: locale))
+                .font(.system(size: 8.5, weight: .semibold, design: .rounded))
+                .monospacedDigit()
+                .widgetTextFit(lines: 1, minScale: 0.65)
+                .opacity(0.82)
+        }
+        .foregroundStyle(.white)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(6)
+        .background {
+            Circle()
+                .fill(Color.white.opacity(0.14))
+
+            Circle()
+                .stroke(Color.white.opacity(0.26), lineWidth: 2)
+        }
+    }
+
+    private var shortPrayerName: String {
+        let title = entry.nextPrayer.prayer.title(for: language)
+        return title.count > 10 ? String(title.prefix(10)) : title
+    }
+}
+
+private struct PreviewLockScreenPrayerRectangularView: View {
+    let entry: PrayWindowPreviewEntry
+
+    private var language: AppLanguage { entry.settings.language }
+    private var locale: Locale { language.locale }
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(Color.white.opacity(0.14))
+
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(Color.white.opacity(0.22), lineWidth: 1)
+
+            HStack(spacing: 10) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(remainingTimeText)
+                        .font(.system(size: 21, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                        .monospacedDigit()
+                        .widgetTextFit(lines: 1, minScale: 0.6)
+
+                    Text(language.isArabic ? "المتبقي" : "Remaining")
+                        .font(.system(size: 9, weight: .semibold, design: .rounded))
+                        .foregroundStyle(Color.white.opacity(0.72))
+                }
+                .frame(width: 58, alignment: .leading)
+
+                if let image = PreviewWidgetPhotoSource.uiImage(for: entry.settings) {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 42, height: 42)
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                } else {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(Color.white.opacity(0.12))
+
+                        Image(systemName: "moon.stars.fill")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(.white)
+                    }
+                    .frame(width: 42, height: 42)
+                }
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(entry.nextPrayer.prayer.title(for: language))
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                        .widgetTextFit(lines: 1, minScale: 0.7)
+
+                    HStack(spacing: 5) {
+                        Image(systemName: "clock.fill")
+                            .font(.system(size: 10, weight: .bold))
+                        Text(PrayerDateFormatter.timeString(for: entry.nextPrayer.date, locale: locale))
+                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            .monospacedDigit()
+                    }
+                    .foregroundStyle(Color.white.opacity(0.82))
+
+                    Text(language.text(.nextPrayer))
+                        .font(.system(size: 10, weight: .semibold, design: .rounded))
+                        .foregroundStyle(Color.white.opacity(0.72))
+                }
+
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        }
+    }
+
+    private var remainingTimeText: String {
+        let components = Calendar.current.dateComponents([.hour, .minute], from: entry.date, to: entry.nextPrayer.date)
+        let hours = max(components.hour ?? 0, 0)
+        let minutes = max(components.minute ?? 0, 0)
+        return String(format: "%02d:%02d", hours, minutes)
+    }
+}
+
 private struct PreviewCalendarDaySchedule: Identifiable {
     let date: Date
     let dayLabel: String
@@ -1590,9 +2163,9 @@ private struct PreviewCalendarDaySchedule: Identifiable {
 private struct CapsuleTagButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(WidgetFontStyle.cairo.font(size: 15, weight: .regular))
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
+            .font(WidgetFontStyle.rubik.font(size: 14, weight: .semibold))
+            .padding(.horizontal, 16)
+            .frame(height: 38)
             .background(Color(hex: "#EEF2EC"), in: Capsule())
             .opacity(configuration.isPressed ? 0.72 : 1)
     }
@@ -1601,8 +2174,9 @@ private struct CapsuleTagButtonStyle: ButtonStyle {
 private struct FilledActionButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(WidgetFontStyle.cairo.font(size: 18, weight: .bold))
-            .padding(.vertical, 15)
+            .font(WidgetFontStyle.rubik.font(size: 17, weight: .bold))
+            .frame(maxWidth: .infinity)
+            .frame(height: 54)
             .foregroundStyle(.white)
             .background(Color(hex: "#183A2A"), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
             .opacity(configuration.isPressed ? 0.82 : 1)
@@ -1612,8 +2186,9 @@ private struct FilledActionButtonStyle: ButtonStyle {
 private struct OutlineActionButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(WidgetFontStyle.cairo.font(size: 18, weight: .bold))
-            .padding(.vertical, 15)
+            .font(WidgetFontStyle.rubik.font(size: 17, weight: .bold))
+            .frame(maxWidth: .infinity)
+            .frame(height: 54)
             .foregroundStyle(Color(hex: "#183A2A"))
             .background(Color.clear, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
             .overlay(

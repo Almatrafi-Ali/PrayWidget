@@ -226,7 +226,7 @@ struct WidgetTheme: Codable, Hashable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         backgroundHex = try container.decodeIfPresent(String.self, forKey: .backgroundHex) ?? "#123524"
         textHex = try container.decodeIfPresent(String.self, forKey: .textHex) ?? "#F9F7F1"
-        fontStyle = try container.decodeIfPresent(WidgetFontStyle.self, forKey: .fontStyle) ?? .cairo
+        fontStyle = try container.decodeIfPresent(WidgetFontStyle.self, forKey: .fontStyle) ?? .rubik
         textScale = try container.decodeIfPresent(WidgetTextScale.self, forKey: .textScale) ?? .regular
         fontSizeMultiplier = try container.decodeIfPresent(Double.self, forKey: .fontSizeMultiplier) ?? 1
     }
@@ -234,10 +234,29 @@ struct WidgetTheme: Codable, Hashable {
     static let `default` = WidgetTheme(
         backgroundHex: "#123524",
         textHex: "#F9F7F1",
-        fontStyle: .cairo,
+        fontStyle: .rubik,
         textScale: .regular,
         fontSizeMultiplier: 1
     )
+}
+
+enum WidgetPhotoChoice: String, CaseIterable, Codable, Identifiable {
+    case none
+    case makkah
+    case madinah
+    case alquds
+    case custom
+
+    var id: String { rawValue }
+
+    var assetName: String? {
+        switch self {
+        case .none, .custom: return nil
+        case .makkah: return "makkah_photo"
+        case .madinah: return "madinah_photo"
+        case .alquds: return "alquds_photo"
+        }
+    }
 }
 
 struct PrayerSettings: Codable, Hashable {
@@ -247,7 +266,7 @@ struct PrayerSettings: Codable, Hashable {
     var usesCurrentLocation: Bool
     var language: AppLanguage
     var theme: WidgetTheme
-    var showsCustomPhoto: Bool
+    var photoChoice: WidgetPhotoChoice
     var customPhotoFocusX: Double
     var customPhotoFocusY: Double
     var customPhotoRevision: String
@@ -259,6 +278,7 @@ struct PrayerSettings: Codable, Hashable {
         case usesCurrentLocation
         case language
         case theme
+        case photoChoice
         case showsCustomPhoto
         case customPhotoFocusX
         case customPhotoFocusY
@@ -272,7 +292,7 @@ struct PrayerSettings: Codable, Hashable {
         usesCurrentLocation: Bool,
         language: AppLanguage,
         theme: WidgetTheme,
-        showsCustomPhoto: Bool = false,
+        photoChoice: WidgetPhotoChoice = .makkah,
         customPhotoFocusX: Double = 0.5,
         customPhotoFocusY: Double = 0.5,
         customPhotoRevision: String = ""
@@ -283,7 +303,7 @@ struct PrayerSettings: Codable, Hashable {
         self.usesCurrentLocation = usesCurrentLocation
         self.language = language
         self.theme = theme
-        self.showsCustomPhoto = showsCustomPhoto
+        self.photoChoice = photoChoice
         self.customPhotoFocusX = customPhotoFocusX
         self.customPhotoFocusY = customPhotoFocusY
         self.customPhotoRevision = customPhotoRevision
@@ -297,10 +317,28 @@ struct PrayerSettings: Codable, Hashable {
         usesCurrentLocation = try container.decodeIfPresent(Bool.self, forKey: .usesCurrentLocation) ?? false
         language = try container.decodeIfPresent(AppLanguage.self, forKey: .language) ?? .arabic
         theme = try container.decodeIfPresent(WidgetTheme.self, forKey: .theme) ?? .default
-        showsCustomPhoto = try container.decodeIfPresent(Bool.self, forKey: .showsCustomPhoto) ?? false
+        if let decodedPhotoChoice = try container.decodeIfPresent(WidgetPhotoChoice.self, forKey: .photoChoice) {
+            photoChoice = decodedPhotoChoice
+        } else {
+            photoChoice = (try container.decodeIfPresent(Bool.self, forKey: .showsCustomPhoto) ?? false) ? .custom : .makkah
+        }
         customPhotoFocusX = try container.decodeIfPresent(Double.self, forKey: .customPhotoFocusX) ?? 0.5
         customPhotoFocusY = try container.decodeIfPresent(Double.self, forKey: .customPhotoFocusY) ?? 0.5
         customPhotoRevision = try container.decodeIfPresent(String.self, forKey: .customPhotoRevision) ?? ""
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(city, forKey: .city)
+        try container.encode(latitude, forKey: .latitude)
+        try container.encode(longitude, forKey: .longitude)
+        try container.encode(usesCurrentLocation, forKey: .usesCurrentLocation)
+        try container.encode(language, forKey: .language)
+        try container.encode(theme, forKey: .theme)
+        try container.encode(photoChoice, forKey: .photoChoice)
+        try container.encode(customPhotoFocusX, forKey: .customPhotoFocusX)
+        try container.encode(customPhotoFocusY, forKey: .customPhotoFocusY)
+        try container.encode(customPhotoRevision, forKey: .customPhotoRevision)
     }
 
     var customPhotoFocusPoint: CGPoint {
@@ -316,9 +354,9 @@ struct PrayerSettings: Codable, Hashable {
         theme: WidgetTheme(
             backgroundHex: "#123524",
             textHex: "#F9F7F1",
-            fontStyle: .cairo
+            fontStyle: .rubik
         ),
-        showsCustomPhoto: false,
+        photoChoice: .makkah,
         customPhotoFocusX: 0.5,
         customPhotoFocusY: 0.5,
         customPhotoRevision: ""

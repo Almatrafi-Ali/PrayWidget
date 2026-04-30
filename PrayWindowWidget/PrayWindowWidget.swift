@@ -93,6 +93,33 @@ struct PrayWindowImagePrayerWidgetEntryView: View {
     }
 }
 
+struct PrayWindowDateWisdomWidgetEntryView: View {
+    let entry: PrayWindowEntry
+
+    var body: some View {
+        PrayerDateWisdomMediumView(entry: entry)
+            .environment(\.layoutDirection, entry.settings.language.layoutDirection)
+    }
+}
+
+struct PrayWindowLockScreenCountdownWidgetEntryView: View {
+    let entry: PrayWindowEntry
+
+    var body: some View {
+        PrayerLockScreenCountdownCircularView(entry: entry)
+            .environment(\.layoutDirection, entry.settings.language.layoutDirection)
+    }
+}
+
+struct PrayWindowLockScreenPrayerWidgetEntryView: View {
+    let entry: PrayWindowEntry
+
+    var body: some View {
+        PrayerLockScreenPrayerRectangularView(entry: entry)
+            .environment(\.layoutDirection, entry.settings.language.layoutDirection)
+    }
+}
+
 private struct WidgetMetrics {
     let size: CGSize
     let multiplier: CGFloat
@@ -107,6 +134,74 @@ private struct WidgetMetrics {
 
     func inset(_ base: CGFloat) -> CGFloat {
         base * baseScale
+    }
+}
+
+private struct PrayerLockScreenCountdownCircularView: View {
+    let entry: PrayWindowEntry
+
+    private var language: AppLanguage { entry.settings.language }
+    private var locale: Locale { language.locale }
+
+    var body: some View {
+        VStack(spacing: 2) {
+            Text(shortPrayerName)
+                .font(.system(size: 10, weight: .bold, design: .rounded))
+                .widgetTextFit(lines: 1, minScale: 0.6)
+
+            Text(entry.nextPrayer.date, style: .timer)
+                .font(.system(size: 12, weight: .bold, design: .rounded))
+                .monospacedDigit()
+                .widgetTextFit(lines: 1, minScale: 0.4)
+
+            Text(PrayerDateFormatter.timeString(for: entry.nextPrayer.date, locale: locale))
+                .font(.system(size: 8.5, weight: .semibold, design: .rounded))
+                .monospacedDigit()
+                .widgetTextFit(lines: 1, minScale: 0.65)
+                .opacity(0.82)
+        }
+        .foregroundStyle(.primary)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(6)
+        .background {
+            Circle()
+                .stroke(Color.primary.opacity(0.2), lineWidth: 2)
+        }
+        .containerBackground(for: .widget) {
+            Color.clear
+        }
+    }
+
+    private var shortPrayerName: String {
+        let title = entry.nextPrayer.prayer.title(for: language)
+        return title.count > 10 ? String(title.prefix(10)) : title
+    }
+}
+
+private struct PrayerLockScreenPrayerRectangularView: View {
+    let entry: PrayWindowEntry
+
+    private var language: AppLanguage { entry.settings.language }
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(entry.nextPrayer.prayer.title(for: language))
+                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .foregroundStyle(.primary)
+                .widgetTextFit(lines: 1, minScale: 0.65)
+
+            Text(entry.nextPrayer.date, style: .timer)
+                .font(.system(size: 24, weight: .heavy, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(.primary)
+                .widgetTextFit(lines: 1, minScale: 0.5)
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .containerBackground(for: .widget) {
+            Color.clear
+        }
     }
 }
 
@@ -242,11 +337,15 @@ private struct CalendarStarSectionRow: View {
 
 private enum WidgetPhotoSource {
     static func uiImage(for settings: PrayerSettings) -> UIImage? {
-        if settings.showsCustomPhoto, let image = WidgetSettingsStore.shared.customPhotoImage(revision: settings.customPhotoRevision) {
-            return image
+        switch settings.photoChoice {
+        case .none:
+            return nil
+        case .custom:
+            return WidgetSettingsStore.shared.customPhotoImage(revision: settings.customPhotoRevision)
+        case .makkah, .madinah, .alquds:
+            guard let assetName = settings.photoChoice.assetName else { return nil }
+            return UIImage(named: assetName)
         }
-
-        return UIImage(named: "makkah_photo")
     }
 }
 
@@ -721,6 +820,162 @@ private struct PrayerImageMediumView: View {
     }
 }
 
+private struct PrayerDateWisdomMediumView: View {
+    let entry: PrayWindowEntry
+
+    private var language: AppLanguage { entry.settings.language }
+    private var locale: Locale { language.locale }
+    private var background: Color { Color(hex: entry.settings.theme.backgroundHex) }
+    private var foreground: Color { Color(hex: entry.settings.theme.textHex) }
+    private var panelBackground: Color { background.opacity(0.76) }
+    private var panelBorder: Color { foreground.opacity(0.14) }
+
+    var body: some View {
+        GeometryReader { proxy in
+            let metrics = WidgetMetrics(
+                size: proxy.size,
+                multiplier: entry.settings.theme.textScale.multiplier * CGFloat(entry.settings.theme.fontSizeMultiplier)
+            )
+
+            HStack(spacing: 0) {
+                infoPanel(metrics: metrics)
+                    .frame(width: proxy.size.width * 0.52)
+
+                imagePanel(metrics: metrics)
+                    .frame(maxWidth: .infinity)
+            }
+            .environment(\.layoutDirection, .leftToRight)
+            .background(background)
+        }
+        .containerBackground(for: .widget) { background }
+    }
+
+    private func infoPanel(metrics: WidgetMetrics) -> some View {
+        VStack(alignment: .center, spacing: metrics.inset(18)) {
+            Text(weekdayTitle)
+                .font(entry.settings.theme.fontStyle.font(size: metrics.font(24), weight: .bold))
+                .widgetTextFit(lines: 1, minScale: 0.6)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, alignment: .center)
+
+            HStack(alignment: .top, spacing: metrics.inset(12)) {
+                dateColumn(
+                    day: gregorianDay,
+                    month: gregorianMonth,
+                    year: gregorianYear,
+                    metrics: metrics,
+                    emphasized: false
+                )
+                dateColumn(
+                    day: hijriDay,
+                    month: hijriMonth,
+                    year: hijriYear,
+                    metrics: metrics,
+                    emphasized: true
+                )
+            }
+            .environment(\.layoutDirection, .leftToRight)
+            .frame(maxWidth: .infinity)
+
+            Spacer(minLength: metrics.inset(8))
+
+            Text(nextPrayerText)
+                .font(entry.settings.theme.fontStyle.font(size: metrics.font(11.4), weight: .semibold))
+                .widgetTextFit(lines: 1, minScale: 0.72)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, alignment: .center)
+        }
+        .foregroundStyle(foreground)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.horizontal, metrics.inset(14))
+        .padding(.vertical, metrics.inset(16))
+        .background(panelBackground)
+        .overlay(Rectangle().fill(panelBorder).frame(width: 1), alignment: .trailing)
+        .environment(\.layoutDirection, language.layoutDirection)
+    }
+
+    private func dateColumn(day: String, month: String, year: String, metrics: WidgetMetrics, emphasized: Bool) -> some View {
+        VStack(spacing: metrics.inset(3)) {
+            Text(day)
+                .font(entry.settings.theme.fontStyle.font(size: metrics.font(emphasized ? 21 : 19), weight: .bold))
+                .widgetTextFit(lines: 1, minScale: 0.7)
+
+            Text(month)
+                .font(entry.settings.theme.fontStyle.font(size: metrics.font(emphasized ? 14.4 : 13.4), weight: .semibold))
+                .widgetTextFit(lines: 2, minScale: 0.72)
+                .multilineTextAlignment(.center)
+
+            Text(year)
+                .font(entry.settings.theme.fontStyle.font(size: metrics.font(12), weight: .medium))
+                .widgetTextFit(lines: 1, minScale: 0.78)
+        }
+        .frame(maxWidth: .infinity, alignment: .center)
+    }
+
+    private func imagePanel(metrics: WidgetMetrics) -> some View {
+        ZStack {
+            if let image = WidgetPhotoSource.uiImage(for: entry.settings) {
+                WidgetPhotoFillView(image: image, focalPoint: entry.settings.customPhotoFocusPoint)
+            } else {
+                LinearGradient(
+                    colors: [background.opacity(0.92), background.opacity(0.68)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
+        }
+        .clipped()
+    }
+
+    private var weekdayTitle: String {
+        let formatter = DateFormatter()
+        formatter.locale = locale
+        formatter.setLocalizedDateFormatFromTemplate("EEEE")
+        return formatter.string(from: entry.date)
+    }
+
+    private var gregorianDay: String {
+        String(Calendar(identifier: .gregorian).component(.day, from: entry.date))
+    }
+
+    private var gregorianMonth: String {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = locale
+        formatter.setLocalizedDateFormatFromTemplate("MMMM")
+        return formatter.string(from: entry.date)
+    }
+
+    private var gregorianYear: String {
+        String(Calendar(identifier: .gregorian).component(.year, from: entry.date))
+    }
+
+    private var hijriDay: String {
+        String(Calendar(identifier: .islamicUmmAlQura).component(.day, from: entry.date))
+    }
+
+    private var hijriMonth: String {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .islamicUmmAlQura)
+        formatter.locale = locale
+        formatter.setLocalizedDateFormatFromTemplate("MMMM")
+        return formatter.string(from: entry.date)
+    }
+
+    private var hijriYear: String {
+        String(Calendar(identifier: .islamicUmmAlQura).component(.year, from: entry.date))
+    }
+
+    private var nextPrayerText: String {
+        let prayerName = entry.nextPrayer.prayer.title(for: language)
+        let prayerTime = PrayerDateFormatter.timeString(for: entry.nextPrayer.date, locale: locale)
+        if language.isArabic {
+            return "\(prayerName) \(prayerTime)"
+        }
+        return "\(prayerName) \(prayerTime)"
+    }
+}
+
 private struct CalendarCityRow: Identifiable {
     let id = UUID()
     let nameArabic: String
@@ -1024,6 +1279,58 @@ struct PrayWindowImagePrayerWidget: Widget {
     }
 }
 
+struct PrayWindowDateWisdomWidget: Widget {
+    let kind = "PrayWindowDateWisdomWidget"
+
+    init() {
+        FontRegistrar.registerEmbeddedFonts()
+    }
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: PrayWindowTimelineProvider()) { entry in
+            PrayWindowDateWisdomWidgetEntryView(entry: entry)
+        }
+        .configurationDisplayName("Date and Wisdom")
+        .description("Shows a photo on the right with Gregorian date, Hijri date, and the wisdom of the day on the left.")
+        .supportedFamilies([.systemMedium])
+        .contentMarginsDisabled()
+    }
+}
+
+struct PrayWindowLockScreenCountdownWidget: Widget {
+    let kind = "PrayWindowLockScreenCountdownWidget"
+
+    init() {
+        FontRegistrar.registerEmbeddedFonts()
+    }
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: PrayWindowTimelineProvider()) { entry in
+            PrayWindowLockScreenCountdownWidgetEntryView(entry: entry)
+        }
+        .configurationDisplayName("Prayer Countdown Lock Screen")
+        .description("Shows the remaining time until the next prayer on the Lock Screen.")
+        .supportedFamilies([.accessoryCircular])
+    }
+}
+
+struct PrayWindowLockScreenPrayerWidget: Widget {
+    let kind = "PrayWindowLockScreenPrayerWidget"
+
+    init() {
+        FontRegistrar.registerEmbeddedFonts()
+    }
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: PrayWindowTimelineProvider()) { entry in
+            PrayWindowLockScreenPrayerWidgetEntryView(entry: entry)
+        }
+        .configurationDisplayName("Next Prayer Lock Screen")
+        .description("Shows the next prayer name and time on the Lock Screen.")
+        .supportedFamilies([.accessoryRectangular])
+    }
+}
+
 private extension View {
     func widgetTextFit(lines: Int = 1, minScale: CGFloat = 0.74) -> some View {
         self
@@ -1040,5 +1347,8 @@ struct PrayWindowWidgetBundle: WidgetBundle {
         PrayWindowCalendarWidget()
         PrayWindowCountdownWidget()
         PrayWindowImagePrayerWidget()
+        PrayWindowDateWisdomWidget()
+        PrayWindowLockScreenCountdownWidget()
+        PrayWindowLockScreenPrayerWidget()
     }
 }
