@@ -8,7 +8,6 @@
 import Combine
 import CoreLocation
 import Foundation
-import MapKit
 
 @MainActor
 final class LocationManager: NSObject, ObservableObject {
@@ -80,23 +79,12 @@ extension LocationManager: CLLocationManagerDelegate {
     }
 
     private func reverseGeocodeCity(for location: CLLocation) async throws -> String? {
-        guard let request = MKReverseGeocodingRequest(location: location) else {
-            return nil
-        }
-
-        let items: [MKMapItem] = try await withCheckedThrowingContinuation { continuation in
-            request.getMapItems { items, error in
-                if let error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume(returning: items ?? [])
-                }
-            }
-        }
-
-        let item = items.first
-        return item?.name
-            ?? item?.address?.shortAddress
-            ?? item?.address?.fullAddress
+        let geocoder = CLGeocoder()
+        let placemarks = try await geocoder.reverseGeocodeLocation(location)
+        let placemark = placemarks.first
+        return placemark?.locality
+            ?? placemark?.subAdministrativeArea
+            ?? placemark?.administrativeArea
+            ?? placemark?.name
     }
 }

@@ -6,7 +6,6 @@
 //
 
 import CoreLocation
-import MapKit
 import PhotosUI
 import SwiftUI
 import UIKit
@@ -55,6 +54,8 @@ struct ContentView: View {
                     settingsTab
                         .padding(20)
                 }
+                .scrollIndicators(.hidden)
+                .contentMargins(.bottom, 28, for: .scrollContent)
                 .background(appBackground.ignoresSafeArea())
                 .navigationTitle(language.isArabic ? "الإعدادات" : "Settings")
                 .toolbarTitleDisplayMode(.inline)
@@ -72,6 +73,8 @@ struct ContentView: View {
                     aboutTab
                         .padding(20)
                 }
+                .scrollIndicators(.hidden)
+                .contentMargins(.bottom, 28, for: .scrollContent)
                 .background(appBackground.ignoresSafeArea())
                 .navigationTitle(language.isArabic ? "عن التطبيق" : "About")
                 .toolbarTitleDisplayMode(.inline)
@@ -142,6 +145,11 @@ struct ContentView: View {
                 Text(language.isArabic ? "تطبيق مخصص لمعاينة وضبط ودجت الصلاة والتقويم بشكل عربي واضح وسهل." : "An app for previewing and customizing the prayer and calendar widget with a clear Arabic-first experience.")
                     .font(settings.theme.fontStyle.font(size: 16, weight: .regular))
                     .foregroundStyle(Color(hex: "#42554B"))
+
+                Text(language.isArabic ? "الإصدار 1.0" : "Version 1.0")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(Color(hex: "#42554B"))
+                    .padding(.top, 4)
             }
             .padding(22)
             .background(Color.white.opacity(0.76), in: RoundedRectangle(cornerRadius: 30, style: .continuous))
@@ -161,6 +169,50 @@ struct ContentView: View {
             }
             .padding(22)
             .background(Color.white.opacity(0.76), in: RoundedRectangle(cornerRadius: 30, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 14) {
+                Label(language.isArabic ? "روابط مهمة" : "Useful Links", systemImage: "link")
+                    .font(settings.theme.fontStyle.font(size: 19, weight: .bold))
+                    .foregroundStyle(Color(hex: "#183A2A"))
+
+                aboutLinkRow(
+                    icon: "lock.shield.fill",
+                    title: language.isArabic ? "سياسة الخصوصية" : "Privacy Policy",
+                    url: "https://nahedh.github.io/PrayWidget/privacy.html"
+                )
+
+                aboutLinkRow(
+                    icon: "questionmark.circle.fill",
+                    title: language.isArabic ? "صفحة الدعم" : "Support",
+                    url: "https://nahedh.github.io/PrayWidget/support.html"
+                )
+            }
+            .padding(22)
+            .background(Color.white.opacity(0.76), in: RoundedRectangle(cornerRadius: 30, style: .continuous))
+        }
+    }
+
+    private func aboutLinkRow(icon: String, title: String, url: String) -> some View {
+        Link(destination: URL(string: url)!) {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(Color(hex: "#1E6F5C"))
+                    .frame(width: 28)
+                Text(title)
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .foregroundStyle(Color(hex: "#183A2A"))
+                Spacer()
+                Image(systemName: language.isArabic ? "chevron.left" : "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Color(hex: "#42554B").opacity(0.6))
+            }
+            .padding(.vertical, 10)
+            .padding(.horizontal, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color.white.opacity(0.7))
+            )
         }
     }
 
@@ -555,16 +607,18 @@ struct ContentView: View {
                         nextPrayer: previewNextPrayer,
                         family: .systemSmall
                     )
-                    .frame(width: 170, height: 170)
+                    .aspectRatio(1, contentMode: .fit)
                 }
+                .frame(maxWidth: .infinity)
 
                 previewGroup(title: language.isArabic ? "الصغير - الوقت المتبقي" : "Small - Time Remaining") {
                     CountdownWidgetPreviewCard(
                         settings: previewSettings,
                         nextPrayer: previewNextPrayer
                     )
-                        .frame(width: 170, height: 170)
+                    .aspectRatio(1, contentMode: .fit)
                 }
+                .frame(maxWidth: .infinity)
             }
 
             previewGroup(title: language.isArabic ? "قفل الشاشة" : "Lock Screen") {
@@ -839,22 +893,10 @@ struct ContentView: View {
         }
 
         do {
-            guard let request = MKGeocodingRequest(addressString: trimmedCity) else {
-                cityLookupError = language.text(.cityLookupFailed)
-                return
-            }
+            let geocoder = CLGeocoder()
+            let placemarks = try await geocoder.geocodeAddressString(trimmedCity)
 
-            let items: [MKMapItem] = try await withCheckedThrowingContinuation { continuation in
-                request.getMapItems { items, error in
-                    if let error {
-                        continuation.resume(throwing: error)
-                    } else {
-                        continuation.resume(returning: items ?? [])
-                    }
-                }
-            }
-
-            guard let location = items.first?.location else {
+            guard let location = placemarks.first?.location else {
                 cityLookupError = language.text(.cityLookupFailed)
                 return
             }
@@ -977,7 +1019,8 @@ private struct LockScreenPrayerPreviewCard: View {
             PreviewLockScreenPrayerRectangularView(
                 entry: .init(date: Date(), settings: settings, nextPrayer: nextPrayer)
             )
-            .frame(width: 230, height: 88)
+            .frame(maxWidth: 230, minHeight: 88, maxHeight: 88)
+            .padding(.horizontal, 8)
         }
         .frame(maxWidth: .infinity, minHeight: 156)
         .padding(.vertical, 16)

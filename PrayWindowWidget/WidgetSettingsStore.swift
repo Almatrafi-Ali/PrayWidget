@@ -9,7 +9,7 @@ import Foundation
 import UIKit
 
 enum SharedStore {
-    static let appGroupID = "group.com.nahedh.apps.PrayWindow"
+    static let appGroupID = "group.com.alialmatrafi.PrayWindow"
     static let settingsKey = "prayer_settings"
     static let customPhotoFilePrefix = "widget_custom_photo_"
     static let customPhotoDataKey = "widget_custom_photo_data"
