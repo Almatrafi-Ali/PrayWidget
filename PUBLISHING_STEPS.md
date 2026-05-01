@@ -51,9 +51,9 @@ git push origin main
 3. اضغط **Save**.
 4. انتظر دقيقتين.
 5. تأكد إن الروابط تفتح بنجاح:
-   - https://nahedh.github.io/PrayWidget/
-   - https://nahedh.github.io/PrayWidget/privacy.html
-   - https://nahedh.github.io/PrayWidget/support.html
+   - https://almatrafi-ali.github.io/PrayWidget/
+   - https://almatrafi-ali.github.io/PrayWidget/privacy.html
+   - https://almatrafi-ali.github.io/PrayWidget/support.html
 
 > ⚠️ **مهم:** Apple ترفض التطبيق إذا روابط الخصوصية أو الدعم لا تعمل. تأكد بنفسك قبل الإرسال.
 
@@ -167,7 +167,7 @@ git push origin main
 
 اسم نهد سيظهر في:
 - البريد الإلكتروني `praywidget@nahedh.com` (إذا اخترتم الإبقاء عليه).
-- روابط GitHub Pages على `nahedh.github.io/PrayWidget`.
+- روابط GitHub Pages على `almatrafi-ali.github.io/PrayWidget`.
 - ملف الكود (Created by Nahedh Alharbi).
 
 إذا أردت نقل صفحات الخصوصية والدعم لحسابك على GitHub:

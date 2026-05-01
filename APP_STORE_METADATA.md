@@ -98,7 +98,7 @@
 التطبيق مجاني تماماً وبدون مشتريات داخلية.
 
 للمراسلة والاقتراحات: praywidget@nahedh.com
-سياسة الخصوصية: https://nahedh.github.io/PrayWidget/privacy.html
+سياسة الخصوصية: https://almatrafi-ali.github.io/PrayWidget/privacy.html
 ```
 
 ### الكلمات المفتاحية (Keywords) — حد أقصى 100 حرف، مفصولة بفواصل
@@ -109,17 +109,17 @@
 
 ### رابط الدعم (Support URL)
 ```
-https://nahedh.github.io/PrayWidget/support.html
+https://almatrafi-ali.github.io/PrayWidget/support.html
 ```
 
 ### رابط التسويق (Marketing URL) — اختياري
 ```
-https://nahedh.github.io/PrayWidget/
+https://almatrafi-ali.github.io/PrayWidget/
 ```
 
 ### رابط سياسة الخصوصية (Privacy Policy URL)
 ```
-https://nahedh.github.io/PrayWidget/privacy.html
+https://almatrafi-ali.github.io/PrayWidget/privacy.html
 ```
 
 ### ما الجديد في هذا الإصدار (What's New) — للإصدار 1.0
@@ -202,7 +202,7 @@ Prayer Widget - A beautifully crafted Arabic-first prayer times app for iPhone a
 The app is completely free with no in-app purchases.
 
 Contact and feedback: praywidget@nahedh.com
-Privacy Policy: https://nahedh.github.io/PrayWidget/privacy.html
+Privacy Policy: https://almatrafi-ali.github.io/PrayWidget/privacy.html
 ```
 
 ### Keywords — max 100 chars, comma-separated
@@ -213,17 +213,17 @@ prayer,salah,muslim,islamic,widget,times,athan,qibla,ramadan,hijri,calendar,arab
 
 ### Support URL
 ```
-https://nahedh.github.io/PrayWidget/support.html
+https://almatrafi-ali.github.io/PrayWidget/support.html
 ```
 
 ### Marketing URL
 ```
-https://nahedh.github.io/PrayWidget/
+https://almatrafi-ali.github.io/PrayWidget/
 ```
 
 ### Privacy Policy URL
 ```
-https://nahedh.github.io/PrayWidget/privacy.html
+https://almatrafi-ali.github.io/PrayWidget/privacy.html
 ```
 
 ### What's New — for v1.0

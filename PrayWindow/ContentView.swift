@@ -178,13 +178,13 @@ struct ContentView: View {
                 aboutLinkRow(
                     icon: "lock.shield.fill",
                     title: language.isArabic ? "سياسة الخصوصية" : "Privacy Policy",
-                    url: "https://nahedh.github.io/PrayWidget/privacy.html"
+                    url: "https://almatrafi-ali.github.io/PrayWidget/privacy.html"
                 )
 
                 aboutLinkRow(
                     icon: "questionmark.circle.fill",
                     title: language.isArabic ? "صفحة الدعم" : "Support",
-                    url: "https://nahedh.github.io/PrayWidget/support.html"
+                    url: "https://almatrafi-ali.github.io/PrayWidget/support.html"
                 )
             }
             .padding(22)
